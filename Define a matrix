@@ -1,0 +1,11 @@
+(* Compilation pass*)
+Inductive natlistL : nat -> Type :=
+  | nilL : natlistL O
+  | consL: forall {n : nat} , natlistL n -> natlistL (S n).
+(* error: The term "2" has type "nat" while it is expected to have type "natlistL ?n". *)
+Example example_list : natlistL 3 :=
+  consL 2 (consL 9 (consL 0 nilL)).
+(* Compilation pass*)
+Inductive matrix : nat -> nat -> Type :=
+  | nilM : matrix O O
+  | consM: forall {m n : nat} , natlistL n -> matrix m n -> matrix (S m) n.
