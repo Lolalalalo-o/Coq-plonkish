@@ -372,6 +372,105 @@ Example test_subset1: subset [1;2] [2;1;4;1] = true.
 Example test_subtest2: subset [1;2;2] [2;1;4;1] = false.
   Proof. reflexivity. Qed.
 
+Theorem tl_length_pred : forall l:natlist,
+  pred (length l) = length (tl l).
+Proof.
+  intros l. destruct l as [| n l'].
+  - reflexivity.
+  - reflexivity. Qed.
 
+Theorem app_assoc : forall l1 l2 l3 : natlist,
+  (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3).
+Proof.
+  intros l1 l2 l3. induction l1 as [| n l1' IHl'].
+  - reflexivity.
+  - simpl. rewrite -> IHl'. reflexivity. Qed.
+Fixpoint rev (l : natlist) : natlist :=
+  match l with
+  | nil => nil
+  | h :: t => rev t ++ [h]
+  end.
+Example test_rev : rev [1;2;3] = [3;2;1].
+  Proof. reflexivity. Qed.
+Theorem app_length : forall l1 l2 : natlist,
+  length (l1 ++ l2) = (length l1) + (length l2).
+Proof.
+  intros l1 l2. induction l1 as [| n l' IHl'].
+  - reflexivity.
+  - simpl. rewrite -> IHl'. reflexivity. Qed.
+
+Theorem rev_length_firsttry : forall l : natlist,
+  length (rev l) = length l.
+Proof.
+  intros l. induction l as [| n l' IHl'].
+  - reflexivity.
+  - simpl. rewrite -> app_length. simpl. rewrite -> IHl'. rewrite Nat.add_comm. reflexivity. Qed.
+
+
+Search rev.
+
+Theorem app_nil_r : forall l : natlist,
+  l ++ [] = l.
+Proof.
+  intros l. induction l as [| n l' IHl'].
+  - reflexivity.
+  - simpl. rewrite -> IHl'. reflexivity. Qed.
+
+Theorem rev_app_distr: forall l1 l2 : natlist,
+  rev (l1 ++ l2) = rev l2 ++ rev l1.
+Proof.
+  intros l1 l2. induction l1 as [| n l' IHl'].
+  - simpl. Search app. rewrite -> app_nil_r. reflexivity.
+  - simpl. Search rev. rewrite -> IHl'. Search app. rewrite -> app_assoc. reflexivity. Qed.
+
+Theorem rev_involutive : forall l : natlist,
+  rev(rev l) = l.
+Proof.
+  intros l. induction l as [| n l' IHl'].
+  - Search rev. reflexivity. 
+  - simpl. Search rev. rewrite -> rev_app_distr. simpl. rewrite IHl'. reflexivity. Qed.
+
+Theorem app_assoc4 : forall l1 l2 l3 l4 : natlist,
+  l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
+Proof.
+  intros l1 l2 l3 l4.
+  Search app. rewrite -> app_assoc. rewrite -> app_assoc. reflexivity. Qed.
+
+Lemma nonzeros_app : forall l1 l2 : natlist,
+  nonzeros (l1 ++ l2) = (nonzeros l1) ++ (nonzeros l2).
+Proof.
+  intros l1 l2. 
+  - simpl.
+  Abort.
+
+Fixpoint eqblist (l1 l2 : natlist) : bool :=
+  match l1, l2 with
+  | nil, nil => true
+  | nil, h :: t => false
+  | h :: t, nil => false
+  | h1 :: t1, h2 :: t2 => if Nat.eqb h1 h2 then (eqblist t1 t2) else false
+  end.
+
+Example test_eqblist1 :
+  eqblist nil nil = true.
+Proof.
+  reflexivity. Qed.
+
+Example test_eqblist2 :
+  eqblist [1;2;3] [1;2;3] = true.
+Proof.
+  reflexivity. Qed.
+
+Example test_eqblist3 :
+  eqblist [1;2;3] [1;2;4] = false.
+Proof.
+  reflexivity. Qed.
+
+Theorem eqblist_refl : forall l:natlist,
+  true = eqblist l l.
+Proof.
+  intros l. induction l as [| n l' IHl'].
+  - reflexivity.
+  - simpl. rewrite <- IHl'. Abort.
 
 
