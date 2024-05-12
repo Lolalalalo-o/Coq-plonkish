@@ -38,3 +38,12 @@ Fixpoint f_mult (f1 f2 : function) : nat :=
   
 Example test_f_mult: f_mult f1 f2 = 20.
 Proof. reflexivity. Qed.
+
+Notation "x ** y" := (f_mult x y)
+                     (at level 20).
+
+Definition f3 := cons 0 (cons 1 (cons 2 nil)).
+Definition f4 := f3.
+
+Example test_f_mult1 : f1 ** f2 + f3 ** f4 = 25.
+Proof. reflexivity. Qed.
