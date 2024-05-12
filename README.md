@@ -1,1 +1,1 @@
-# Let's start this journey
+# Let's start a new journey
