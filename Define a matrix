@@ -9,3 +9,5 @@ Example example_list : natlistL 3 :=
 Inductive matrix : nat -> nat -> Type :=
   | nilM : matrix O O
   | consM: forall {m n : nat} , natlistL n -> matrix m n -> matrix (S m) n.
+(* error: m, n : nat should be a name*)
+Definition function : Type := {(m, n : nat) & (matrix m n)}.
