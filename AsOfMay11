@@ -1,0 +1,377 @@
+Inductive day : Type :=
+| monday
+| tuesday
+| wednesday
+| thursday
+| friday
+| saturday
+| sunday.
+Definition next_weekday (d:day) : day :=
+match d with
+| monday => tuesday
+| tuesday => wednesday
+| wednesday => thursday
+| thursday => friday
+| friday => monday
+| saturday => monday
+| sunday => monday
+end.
+Compute (next_weekday friday).
+Compute (next_weekday saturday).
+Example test_next_weekday:
+(next_weekday (next_weekday saturday))=tuesday.
+Proof. simpl. reflexivity. Qed.
+Inductive bool : Type :=
+| true
+| false.
+Definition negb (b:bool) : bool :=
+if b then false
+else true.
+Definition nandb (b1:bool) (b2:bool) : bool :=
+if b1 then negb (b2)
+else negb (b1).
+Example test_andb1: (nandb true false) = true.
+Proof. simpl. reflexivity. Qed.
+Example test_nandb2: (nandb false false) = true.
+Proof. simpl. reflexivity. Qed.
+Require Import ZArith.
+Definition myInteger : Z := 0.
+Require Import List.
+Inductive IntArray : Type :=
+EmptyArray : IntArray.
+Check IntArray.
+Check (negb(false))
+: bool.
+Check (negb true) : bool.
+Check (S(S(S O))).
+
+Compute mult 4 5.
+Definition F (n : nat) : nat :=
+match n with
+| O => S O
+| S O => S O
+| S (S b) => plus b (S b)
+end.
+Compute F(4).
+Compute F(5).
+Definition minusTwo (a : nat) : nat :=
+match a with
+| O => O
+| S O => O
+| S(S b) => b
+end.
+Compute minusTwo 0.
+
+Compute (minus 3 2).
+Fixpoint plus (n m : nat) : nat :=
+match n with
+| O => m
+| S n' => S (plus n' m)
+end.
+Fixpoint f (n : nat) : nat :=
+match n with
+| O => S O
+| S b => mult n (f b)
+end.
+Compute f 3.
+Fixpoint fact_rec (n : nat) : nat :=
+  match n with
+  | O => 1
+  | S n' => mult (S n') (fact_rec n')
+  end.
+Inductive bin : Type :=
+| z
+| A (n : bin)
+| B (n : bin).
+Require Import Arith.
+Definition minus (n m : nat) : nat :=
+match n, m with
+| O, _ => O
+| S n', O => S n'
+| S n', S m' => n' - m'
+end.
+Theorem minus_diag : forall n : nat,
+n - n = O.
+Proof.
+  intros n. induction n as [| n' IHn'].
+- simpl. reflexivity.
+- simpl. rewrite -> IHn'. reflexivity. Qed.
+Fixpoint mult (n m : nat) : nat :=
+match n with
+| O => O
+| S n' => plus m (mult n' m)
+end.
+Compute mult 4 5.
+Theorem mult_O_r : forall n:nat,
+n * O=O.
+Proof.
+  induction n as[| n'].
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn'. reflexivity. Qed.
+Theorem plus_n_Sm : forall n m : nat,
+S(n+m) = n + (S m).
+Proof.
+  intros n m. induction n as [| n' IHn'].
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn'. reflexivity. Qed.
+Theorem plus_comm : forall n m : nat,
+n + m = m + n.
+Proof.
+  intros n m. induction m as [| m' IHm'].
+  induction n as [| n' IHn']. 
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn'. reflexivity.
+  - simpl. rewrite <- IHm'. rewrite <- plus_n_Sm. reflexivity. Qed.
+Fixpoint double (n:nat) :=
+  match n with
+  | O => O
+  | S n' => S(S(double n'))
+  end.
+Lemma double_plus : forall n, double n = n + n.
+Proof.
+  induction n as [| n'].
+  - simpl. reflexivity.
+  - simpl. rewrite -> IHn'. rewrite <- plus_n_Sm. reflexivity. Qed.
+Theorem plus_assoc : forall n m p : nat,
+n+(m+p)=(n+m)+p.
+Proof.
+  intros n m p. induction n as [| n'].
+  - simpl. reflexivity.
+  - simpl. rewrite <- IHn'. reflexivity. Qed.
+Require Import Arith.
+Fixpoint evenb (n:nat) : bool :=
+  match n with
+  | O => true
+  | S O => false
+  | S (S n') => evenb n'
+  end.
+Theorem negb_R : forall n : bool,
+  negb(negb n) = n.
+Proof.
+  intros n. destruct n.
+  - simpl. reflexivity.
+  - simpl. reflexivity. Qed.
+Theorem evenb_S : forall n : nat,
+evenb (S n) = negb (evenb n).
+Proof.
+  induction n as [| n'].
+  - simpl. reflexivity.
+  - rewrite -> IHn'. simpl. 
+    rewrite -> negb_R.
+reflexivity. Qed.
+
+Theorem mult_0_plus' : forall n m : nat,
+  (0+n)*m=n*m.
+Proof.
+  intros n m.
+  assert (H: 0+n=n). { reflexivity. }
+  rewrite -> H. reflexivity. Qed.
+Theorem plus_rearrange_firsttry : forall n m p q : nat,
+(n+m) +(p+q)=(m+n)+(p+q).
+Proof.
+  intros n m p q.
+  assert (H: n+m=m+n).
+  { rewrite -> Nat.add_comm. reflexivity. }
+  rewrite -> H. reflexivity. Qed.
+Theorem plus_assoc' : forall n m p : nat,
+  n + (m + p) = (n + m) + p.
+Proof. intros n m p. induction n as [| n' IHn']. reflexivity.
+  simpl. rewrite -> IHn'. reflexivity. Qed.
+Theorem plus_swap : forall n m p : nat,
+  n+(m+p)=m+(n+p).
+Proof.
+  intros n m p.
+  rewrite -> Nat.add_comm.
+  assert (H: p+n=n+p).
+  { rewrite Nat.add_comm. reflexivity. }
+  rewrite <- H. rewrite -> plus_assoc'. reflexivity. Qed. 
+Require Import Vector.
+
+Inductive natprod : Type :=
+| pair (n1 n2 : nat).
+Definition fst (p : natprod) : nat :=
+  match p with
+  | pair x y => x
+  end.
+Definition snd (p : natprod) : nat :=
+  match p with
+  | pair x y => y
+  end.
+Notation "( x , y )" :=(pair x y).
+Definition swap_pair (p : natprod) : natprod :=
+  match p with
+  |(x,y) => (y,x)
+  end.
+Theorem snd_fst_is_swap : forall (p : natprod),
+  (snd p, fst p) = swap_pair p.
+Proof.
+  intros p. destruct p as [n m].
+  simpl. reflexivity. Qed.
+
+Theorem fst_swap_is_snd : forall (p : natprod),
+  fst (swap_pair p) = snd p.
+Proof.
+  intros p. rewrite <- snd_fst_is_swap. simpl. reflexivity. Qed.
+Inductive natlist : Type :=
+  | nil
+  | cons (n : nat) (l : natlist).
+Notation "x :: l" := (cons x l)
+                    (at level 60, right associativity).
+Notation "[]" := (nil).
+Notation "[ x ; .. ; y ]" := (cons x .. (cons y nil) ..).
+
+Fixpoint repeat (n count : nat) : natlist :=
+  match count with
+  |O => nil
+  |S count' => n :: (repeat n count')
+  end.
+Fixpoint length (l : natlist) : nat :=
+   match l with 
+  | nil => O
+  | h :: t => S (length t)
+  end.
+Fixpoint app (l1 l2 : natlist) : natlist :=
+  match l1 with
+  | nil => l2
+  | h :: t => h :: (app t l2)
+  end.
+Notation "x ++ y" := (app x y)
+                     (right associativity, at level 60).
+Example test_app1: [1;2;3] ++ [4] = [1;2;3;4].
+Proof. reflexivity. Qed.
+
+Definition hd (default : nat) (l : natlist) : nat :=
+  match l with
+  | nil => default
+  | h :: t => h
+  end.
+Definition tl (l : natlist) : natlist :=
+  match l with
+  | nil => nil
+  | h :: t => t
+  end.
+
+Fixpoint nonzeros (l : natlist) : natlist :=
+  match l with
+  | nil => nil
+  | cons h t => if Nat.eqb h 0 then nonzeros t else cons h (nonzeros t)
+  end.
+Example test_nonzeros:
+  nonzeros [1;0;4;2] = [1;4;2].
+  Proof. simpl. reflexivity. Qed.
+Fixpoint even (n:nat) : bool :=
+  match n with
+  | O => true
+  | S O => false
+  | S (S n') => even n'
+  end.
+
+Compute negb (evenb 3).
+
+Fixpoint oddmembers (l : natlist) : natlist :=
+  match l with
+  | nil => nil
+  | cons h t => if evenb h then oddmembers t else h :: (oddmembers t)
+  end.
+
+Example test_oddmembers:
+  oddmembers [0;1;2;3;4] = [1;3].
+  Proof. simpl. reflexivity. Qed.
+
+Fixpoint countoddmembers (l : natlist) : nat :=
+  match l with
+  | nil => O
+  | cons h t => if evenb h then countoddmembers t else S (countoddmembers t)
+  end.
+
+Example test_countoddmembers:
+  countoddmembers [1;2;3;4;5] = 3.
+  Proof. simpl. reflexivity. Qed.
+
+Fixpoint alternate (l1 l2 : natlist) : natlist :=
+  match l1, l2 with
+  | nil, nil => nil
+  | nil, cons h t => l2
+  | cons h t, nil => l1
+  | cons h t, (cons h' t') => h :: h' :: alternate t t'
+  end.
+
+Example test_alternate:
+  alternate [1;3] [2;4] = [1;2;3;4].
+  Proof. simpl. reflexivity. Qed.
+
+Definition bag := natlist.
+
+Fixpoint count (v:nat) (s:bag) : nat :=
+  match s with
+  | nil => O
+  | h :: t => if Nat.eqb v h then S (count v t) else count v t
+  end.
+
+Example test_count:
+  count 3 [2;3;4;3;5] = 2.
+  Proof. simpl. reflexivity. Qed.
+
+Definition sum (b1 b2 : bag) : bag :=
+  alternate b1 b2.
+
+Example test_sum1: count 1 (sum [1;2;3] [1;4;1]) = 3.
+  Proof. simpl. reflexivity. Qed.
+
+Definition add (v:nat) (s:bag) : bag :=
+  alternate [v] s.
+
+Example test_add1: count 1 (add 1 [1;4;1]) = 3.
+  Proof. simpl. reflexivity. Qed.
+
+Example test_add2: count 5 (add 1 [1;4;1]) = 0.
+  Proof. simpl. reflexivity. Qed.
+
+Definition member (v:nat) (s:bag) : bool :=
+  if Nat.eqb (count v s) O then false else true.
+
+Example test_member1: member 1 [1;4;1] = true.
+  Proof. reflexivity. Qed.
+
+Example test_member2: member 2 [1;4;1] = false.
+  Proof. reflexivity. Qed.
+
+Fixpoint remove_all (v:nat)(s:bag) : bag :=
+  match s with
+  | nil => nil
+  | h :: t => if Nat.eqb v h then remove_all v t else h :: (remove_all v t)
+  end.
+
+Example test_remove_all1:
+  count 5 (remove_all 5 [2;1;5;5;1]) = 0.
+  Proof. reflexivity. Qed.
+
+Example test_remove_all2:
+  count 4 (remove_all 5 [2;1;4;5;1;4]) = 2.
+  Proof. reflexivity. Qed.
+
+Example test_remove_all3:
+  count 2 (remove_all 5 [2;1;5;4;5;1;4]) = 1.
+  Proof. reflexivity. Qed.
+
+Fixpoint remove_one (v:nat) (s:bag) : bag :=
+  match s with
+  | nil => nil
+  | h :: t => if Nat.eqb h v then t else h :: (remove_one v t)
+  end.
+Example test_remove_one1: count 5 (remove_one 5 [2;5;5;1]) = 1.
+  Proof. reflexivity. Qed.
+
+Fixpoint subset (s1:bag) (s2:bag) : bool :=
+  match s1 with
+  | nil => true
+  | h :: t => if (Nat.eqb (count h s2) O) then false else (subset t (remove_one h s2))
+  end.
+Example test_subset1: subset [1;2] [2;1;4;1] = true.
+  Proof. reflexivity. Qed.
+Example test_subtest2: subset [1;2;2] [2;1;4;1] = false.
+  Proof. reflexivity. Qed.
+
+
+
+
