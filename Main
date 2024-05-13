@@ -83,6 +83,23 @@ Inductive bin : Type :=
 | z
 | A (n : bin)
 | B (n : bin).
+
+Fixpoint incr (m:bin) : bin :=
+  match m with
+  | z => B z
+  | A n => B n
+  | B n => A (incr n)
+  end.
+
+Fixpoint bin_to_nat (b : bin) : nat :=
+  match b with
+  | z => 0
+  | A n => 2*(bin_to_nat n-1)
+  | B n => 2*(bin_to_nat n) +1
+  end.
+Example test_bin_to_nat : bin_to_nat (B (B z)) = 3.
+Proof. reflexivity. Qed.
+
 Require Import Arith.
 Definition minus (n m : nat) : nat :=
 match n, m with
