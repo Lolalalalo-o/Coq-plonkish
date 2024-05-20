@@ -47,3 +47,19 @@ Definition f4 := f3.
 
 Example test_f_mult1 : f1 ** f2 + f3 ** f4 = 25.
 Proof. reflexivity. Qed.
+
+Theorem simple_example : 2 + 2 = 4.
+Proof.
+  exact (eq_refl 4).
+Qed.
+Check eq_refl.
+
+Lemma FOT : False -> True.
+  exact (fun (H : False) => I).
+Qed.
+
+Lemma false_imply_true:
+  False -> True.
+Proof.
+  apply (fun (H : False)=> match H with end).
+Qed.
