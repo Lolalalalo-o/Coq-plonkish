@@ -63,3 +63,63 @@ Lemma false_imply_true:
 Proof.
   apply (fun (H : False)=> match H with end).
 Qed.
+
+Module Field.
+
+(*Inductive Field : Set :=
+  | nilF : Field
+  | consF : nat -> Field.*)
+Require Import Coq.Init.Nat.
+Require Import Coq.Vectors.Vector.
+Import VectorNotations.
+
+(*Definition smallerThan (p : nat) : Prop := exists n, n < p.
+
+Definition Field : Set := { p : nat | smallerThan p }.
+
+(* 构造一个包含所有小于5的自然数的Field实例 *)
+Definition field_5 : Vector.t Field 5.
+Proof.
+  refine (exist _ 1 _ :: exist _ 2 _ :: exist _ 3 _ :: exist _ 4 _ :: exist _ 5 _ :: @nil Field).
+  - exists 0. apply Nat.lt_succ_diag_r.
+  - exists 1. apply Nat.lt_succ_diag_r.
+  - exists 2. apply Nat.lt_succ_diag_r.
+  - exists 3. apply Nat.lt_succ_diag_r.
+  - exists 4. apply Nat.lt_succ_diag_r.
+Defined.*)
+
+Definition smallerThan (p : nat) : Prop := exists n, n < p.
+
+Definition Field : Set := { p : nat | smallerThan p }.
+Definition field : Field.
+Proof.
+  exists 1. exists 0. apply Nat.lt_succ_diag_r.
+Defined.
+Check field. 
+
+Inductive Poly : Set :=
+| Scalar: Field -> Poly
+| Map: (Field -> Field) -> Poly
+| Add: Poly -> Poly -> Poly (*a + b*)
+| Mul: Poly -> Poly -> Poly (*a * b*)
+| Shift: Poly -> nat -> Poly (*f(x + s)*)
+| Scale: Field -> Poly -> Poly. (*s * f(x)*)
+
+Notation "x + y" := (Add x y).
+Notation "x * y" := (Mul x y).
+
+Inductive Constraint: Set :=
+| IsZero: Poly -> Constraint (*f(x) = 0; 3f(x) = 0*)
+| lookup: Poly -> Poly -> Constraint (*forall x, exists y, f(x) = g(x)*)
+| Shuffle: Poly -> Poly -> Constraint. (*f(x) = g(x)*)
+
+Definition f := Scalar (field).
+Definition g := Scalar (field).
+Definition z := Scalar (field).
+Definition f1 := Map (fun x => field). 
+Definition g1 := Map (fun x => field).
+
+Definition C1 := IsZero (f + g + (Scale field z)).
+Definition C2 := Shuffle (Scale field f) ((Scale field g) + (Scalar field)).
+Definition C3 := lookup f1 ((Scalar field) + g1).
+End Field.
