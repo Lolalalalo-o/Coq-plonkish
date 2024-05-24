@@ -1,0 +1,107 @@
+Inductive prod (X Y : Type): Type :=
+| pair (x : X) (y : Y).
+Arguments pair {X} {Y} _ _.
+Notation "( x , y )" := (pair x y).
+Notation "X * Y" := (prod X Y) : type_scope.
+
+Definition fst {X Y : Type} (p : X * Y) : X :=
+  match p with
+  | (x, y) => x
+  end.
+Definition snd {X Y : Type} (p : X * Y) : Y :=
+  match p with 
+  | (x, y) => y
+  end.
+Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y) : list (X*Y) :=
+  match lx, ly with
+  | [], _ => []
+  | _, [] => []
+  | x :: tx, y :: ty => (x, y) :: (combine tx ty)
+  end.
+Check combine.
+
+Compute (combine [1;2][false;false;true;true]).
+
+Fixpoint split {X Y : Type} (l : list (X*Y)) : (list X) * (list Y) :=
+  match l with
+  | nil => (nil, nil)
+  | (x,y) :: t => let (xs,ys) := split t in (x :: xs, y :: ys)
+  end.
+
+Example test_split:
+  split [(1,false);(2,false)] = ([1;2],[false;false]).
+Proof. reflexivity. Qed.
+
+Search natoption.
+Module OptionPlayground.
+
+Inductive option (X:Type) : Type :=
+  | Some (x : X)
+  | None.
+Arguments Some {X} _.
+Arguments None {X}.
+
+
+Fixpoint nth_error {X : Type} (l : list X) (n : nat) : option X :=
+  match l with
+  | [] => None
+  | a :: l' => if n =? O then Some a else nth_error l' (pred n)
+  end.
+
+Example test_nth_error1 : nth_error [4;5;6;7] 0 = Some 4.
+Proof. reflexivity. Qed.
+Example test_nth_error3 : nth_error [true] 2 = None.
+Proof. reflexivity. Qed.
+
+Definition hd_error {X :Type} (l : list X) : option X :=
+  match l with
+  | nil => None
+  | h :: t => Some h
+  end.
+
+Check @hd_error : forall X : Type, list X -> option X.
+Example test_hd_error1: hd_error [1;2] = Some 1.
+Proof. reflexivity. Qed.
+Example test_hd_error2 : hd_error [[1];[2]] =Some [1].
+Proof. reflexivity. Qed.
+
+(*higher-order functions*)
+Fixpoint filter {X:Type} (test: X->bool) (l:list X) : (list X) :=
+  match l with 
+  | [] => []
+  | h :: t => if test h then h :: (filter test t)
+                        else filter test t
+  end.
+Example test_filter1: filter evenb [1;2;3;4] = [2;4].
+Proof. reflexivity. Qed.
+Require Import Bool.
+Definition length_is_1 {X:Type} (l : list X) : bool :=
+  if length l =? 1 then true else false.
+Example test_filter2:
+  filter length_is_1
+         [[1;2];[3];[4];[5;6;7];[];[8]] = [[3];[4];[8]].
+Proof. reflexivity. Qed.
+Set Implicit Arguments.
+Require Import Notations.
+Require Import Ltac.
+Require Import Logic.
+Require Import List. Check list nat. 
+
+Search evenb.
+Require Import Bool. Check true. Check evenb. Check leb.
+
+(*Definition filter_even_gt7 (l : list nat) : list nat :=
+  filter (fun n => andb (evenb n) (leb 7 n)) l.*)
+End OptionPlayground.
+
+(*Definition of Field*)
+
+Inductive tree (A B : Type) : Type :=
+| leaf : A -> tree A B
+| node : B -> tree A B -> tree A B -> tree A B.
+Set Uniform Inductive Parameters.
+
+Check nat_ind.
+
+Variant field (p : nat): nat -> Set :=
+| mod_P : field p.
