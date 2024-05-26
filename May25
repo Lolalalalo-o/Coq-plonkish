@@ -1,0 +1,205 @@
+Lemma True_istrue : True.
+Proof. apply I. Qed.
+From Coq Require Import Setoids.Setoid.
+
+Lemma or_assoc : forall P Q R : Prop, P \/ (Q \/ R) <-> (P \/ Q) \/ R.
+Proof.
+  intros P Q R. split.
+  - intros [H | [H | H]].
+    + left. left. apply H.
+    + left. right. apply H.
+    + right. apply H.
+  - intros [[H | H] | H].
+    + left. apply H.
+    + right. left. apply H.
+    + right. right. apply H.
+Qed.
+
+Lemma mult_0 : forall n m, n * m = 0 <-> n = 0 \/ m = 0.
+Proof.
+  split.
+  - apply Nat.eq_mul_0.
+  - intros [Hn | Hm].
+    + rewrite Hn. simpl. reflexivity.
+    + rewrite Hm. rewrite Nat.mul_0_r. reflexivity.
+Qed.
+
+
+Lemma mult_0_3 :
+  forall n m p, n * m * p = 0 <-> n = 0 \/ m = 0 \/ p = 0.
+Proof.
+  intros n m p.
+  rewrite mult_0. rewrite mult_0. rewrite or_assoc. reflexivity.
+Qed.
+
+Lemma apply_iff_example :
+  forall n m : nat, n * m = 0 -> n = 0 \/ m = 0.
+Proof.
+  intros n m H. apply mult_0. apply H.
+Qed.
+
+Definition even' x := exists n : nat, x = double n.
+Lemma four_is_even : even' 4.
+Proof.
+  unfold even'. exists 2. reflexivity.
+Qed.
+
+Theorem exists_example_2 : forall n,
+  (exists m, n = 4 + m) -> (exists o, n = 2 + o).
+Proof.
+  intros n [m Hm].
+  exists (2 + m).
+  apply Hm.
+Qed.
+
+Theorem dis_not_exists : forall (X:Type) (P: X -> Prop),
+  (forall x, P x) -> ~ (exists x, ~ P x).
+Proof.
+  intros X P H.
+  unfold not. 
+  intros [x E].
+  apply E. apply H.
+Qed.
+
+Theorem dist_exists_or : forall (X : Type) (P Q : X -> Prop),
+  (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
+Proof.
+  intros X P Q. split.
+  - intros [x H]. destruct H as [HP | HQ].
+    + left. exists x. apply HP.
+    + right. exists x. apply HQ.
+  - intros [HP | HQ].
+    + destruct HP as [x H1]. exists x. left. apply H1.
+    + destruct HQ as [x H2]. exists x. right. apply H2.
+Qed. 
+
+Fixpoint In {A:Type} (x:A) (l:list A) : Prop :=
+  match l with
+  | nil => False
+  | x' :: l' => x= x' \/ In x l'
+  end.
+
+Example In_example_l : In 4 [1;2;3;4;5].
+Proof.
+  simpl. right. right. right. left. reflexivity.
+Qed.
+
+Example In_example_2:
+  forall n, In n [2;4] ->
+  exists n', n = 2 * n'.
+Proof.
+  intros n H. simpl in H. destruct H as [H1 | [H2|H3]].
+  - exists 1. apply H1.
+  - exists 2. apply H2.
+  - exfalso. apply H3.
+Qed.
+
+Lemma In_map :
+  forall (A B : Type) (f : A -> B) (l : list A) (x : A),
+    In x l -> In (f x) (map f l).
+Proof.
+  intros A B f l x H. 
+  induction l as [| x' l' IHl'].
+  - simpl. simpl in H. apply H.
+  - simpl.  destruct H as [H1 | H2].
+    + rewrite H1. left. reflexivity.
+    + right. apply IHl'. apply H2.
+Qed.
+
+Lemma In_Map_iff :
+  forall (A B : Type) (f : A -> B) (l : list A) (y : B),
+    In y (map f l) <-> exists x, f x = y /\ In x l.
+Proof.
+  intros A B f l y. split.
+  - intros H. induction l as [|x' l' IHl'].
+    + simpl in H. exfalso. apply H.
+    + destruct H as [H1 | H2]. exists x'. split. 
+      -- rewrite H1. reflexivity.
+      -- simpl. left. reflexivity.
+      -- apply IHl' in H2. destruct H2 as [x [H21 H22]]. exists x. split.
+        ++ apply H21.
+        ++ simpl. right. apply H22.
+  - intros [x [Hs Ht]]. induction l as [|t h IH].
+    + simpl in Ht. exfalso. apply Ht.
+    + simpl. simpl in Ht. destruct Ht as [Ht1 | Ht2].
+      rewrite Ht1 in Hs.
+      -- left. rewrite Hs. reflexivity.
+      -- right. apply IH. apply Ht2.
+Qed.
+
+Lemma In_app_iff : forall A l l' (a : A),
+  In a (l++l') <-> In a l \/ In a l'.
+Proof.
+  intros A l l' a. split.
+  - intros H. induction l as [| t h IH].
+    + simpl in H. right. apply H.
+    + simpl in H. simpl. destruct H as [H1|H2]. 
+      -- left. left. apply H1.
+      -- apply IH in H2. destruct H2.
+        ++ left. right. apply H.
+        ++ right. apply H.
+  - intros [H1|H2].
+    + induction l as [| t h IH].
+      -- simpl in H1. exfalso. apply H1.
+      -- simpl. destruct H1 as [H11| H12].
+        ++ left. apply H11.
+        ++ right. apply IH in H12. apply H12.
+    + induction l as [| t h IH].
+      -- simpl. apply H2.
+      -- simpl. right. apply IH.
+Qed.
+
+Fixpoint All {T:Type} (P : T -> Prop) (l : list T) : Prop :=
+  match l with
+  | nil => True
+  | x' :: l' => P x' /\ All P l'
+  end.
+
+Lemma All_In : forall T (P : T -> Prop) (l : list T),
+               (forall x, In x l -> P x) <-> All P l.
+Proof.
+  intros T P l. split.
+  - intros H. induction l as [| x' l' IH].
+    + simpl. apply I.
+    + simpl. split.
+      -- apply H. simpl. left. reflexivity.
+      -- apply IH. simpl in H. intros x Hx. apply H. right. assumption.
+  - intros H. induction l as [| x' l' IH].
+    + intros x Hx. simpl in H. exfalso. contradiction.
+    + intros x Hx. simpl in H. destruct H as [H1 H2]. simpl in Hx. destruct Hx as [Hx1 | Hx2].
+      -- rewrite <- Hx1 in H1. apply H1.
+      -- apply IH.
+        ++ apply H2.
+        ++ apply Hx2.
+Qed.
+
+Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
+  fun n => if oddb n then Podd n else Peven n.
+
+Theorem Combine_odd_even_intro :
+  forall (Podd Peven : nat -> Prop) (n:nat),
+         (oddb n = true -> Podd n) ->
+         (oddb n = false -> Peven n) ->
+         combine_odd_even Podd Peven n.
+Proof.
+  intros Podd Peven n H1 H2. unfold combine_odd_even. destruct (oddb n) eqn:H.
+  - apply H1. reflexivity.
+  - apply H2. reflexivity.
+Qed.
+
+Theorem combine_odd_even_elim_odd :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    oddb n = true -> Podd n.
+Proof.
+  intros Podd Peven n H1 H2. unfold combine_odd_even in H1. rewrite H2 in H1.
+  apply H1. 
+Qed.
+
+Theorem combine_odd_even_elim_even :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+  combine_odd_even Podd Peven n ->
+  oddb n = false -> Peven n.
+Proof.
+  intros Podd Peven n H1 H2. unfold combine_odd_even in H1. rewrite H2 in H1. apply H1.
+Qed.
